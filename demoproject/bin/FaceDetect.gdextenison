@@ -1,0 +1,9 @@
+[configuration]
+
+entry_symbol = "face_detect_init"
+compatibility_minium = 4.1
+
+[libraries]
+
+linux.debug.x86_64 = "res:/bin/libFaceDetect.linux.template_debug.x86_64"
+linux.release.x86_64 = "res:/bin/libFaceDetect.linux.template_debug.x86_64"
