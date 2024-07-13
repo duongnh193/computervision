@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
                 cv::rectangle(frame, rect, cv::Scalar(0,0,255),2);
             }
             std::string numFaces = std::to_string(faces.size()) + " face detected";
+            std::string conf = std::to_string(faces.second) + "conf";
             cv::putText(frame, numFaces, cv::Point(50, 50), cv::FONT_HERSHEY_COMPLEX, 1, cv::Scalar(0, 255, 0), 2);
         }
         imshow("Frame", frame);
