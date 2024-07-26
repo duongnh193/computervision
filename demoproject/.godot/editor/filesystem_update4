@@ -1,3 +1,2 @@
-res://main.tscn
 res://world.tscn
-res://bullet.tscn
+res://world.gd

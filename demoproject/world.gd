@@ -76,13 +76,12 @@ func decrease_hp(player, amount):
 	else:
 		player2_hp -= amount
 
-
 #func _on_area_2d_body1_entered(body):
 	#if body.name == "Bullet":
 		#get_tree().change_scene_to_file("res://main.tscn")
 		#
-##
-##
+
+
 #func _on_area_2d_body2_entered(body):
 	#if body.name == "Bullet":
 		#decrease_hp(player2_hp,10)
