@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://bexpn5je88tr1"]
+
+[ext_resource type="Texture2D" uid="uid://bmu8cguacqs7n" path="res://brickfloor.png" id="1_oyqba"]
+[ext_resource type="Script" path="res://bullet.gd" id="1_pdlu5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_470kk"]
+radius = 17.0294
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pd48b"]
+radius = 22.561
+
+[node name="Bullet" type="CharacterBody2D"]
+script = ExtResource("1_pdlu5")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_470kk")
+
+[node name="Sprite2D" type="Sprite2D" parent="Area2D"]
+position = Vector2(-1, -1)
+scale = Vector2(0.553, 0.5)
+texture = ExtResource("1_oyqba")
+region_enabled = true
+region_rect = Rect2(144, 0, 48, 48)
+
+[node name="Timer" type="Timer" parent="Area2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_pd48b")
+
+[connection signal="timeout" from="Area2D/Timer" to="." method="_on_timer_timeout"]
