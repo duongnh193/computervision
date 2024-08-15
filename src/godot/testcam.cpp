@@ -34,21 +34,6 @@ bool testcam::is_mouth_open(const std::vector<cv::Point>& mouthLandmarks) {
     return distance > threshold;
 }
 
-bool testcam::openSignalLeft()
-{
-    emit_signal("is_mouth_open", isOpenLeft);
-    return isOpenLeft;
-}
-
-bool testcam::openSignalRight()
-{
-    return isOpenRight;
-}
-
-bool testcam::MouthLandmark()
-{
-    return true;
-}
 
 void testcam::startThread()
 {
@@ -61,7 +46,11 @@ void testcam::startThread()
 
 void testcam::_process(double delta)
 {
-
+    timepass+=delta;
+    if(timepass >= 5){
+        emit_signal("ryu_timepass", timepass);
+        timepass=0;
+    }
 }
 
 void testcam::_bind_methods()
@@ -69,12 +58,12 @@ void testcam::_bind_methods()
     godot::ClassDB::bind_method(godot::D_METHOD("start"), &testcam::start);
     godot::ClassDB::bind_method(godot::D_METHOD("stop"), &testcam::stop);
     godot::ClassDB::bind_method(godot::D_METHOD("get_texture"), &testcam::getTexture);
-    // godot::ClassDB::bind_method(godot::D_METHOD("getLandmark"), &testcam::MouthLandmark);
     godot::ClassDB::bind_method(godot::D_METHOD("startThread"), &testcam::startThread);
-    // godot::ClassDB::bind_method(godot::D_METHOD("mouthOpen"), &testcam::MouthLandmark);
-    godot::ClassDB::bind_method(godot::D_METHOD("mySignalLeft"), &testcam::openSignalLeft);
-    godot::ClassDB::bind_method(godot::D_METHOD("mySignalRight"), &testcam::openSignalRight);
-    ADD_SIGNAL(godot::MethodInfo("is_mouth_open", godot::PropertyInfo(godot::Variant::BOOL, "isOpen")));
+    ADD_SIGNAL(godot::MethodInfo("is_mouth_open_left", godot::PropertyInfo(godot::Variant::BOOL, "isOpen")));
+    ADD_SIGNAL(godot::MethodInfo("is_mouth_open_right", godot::PropertyInfo(godot::Variant::BOOL, "isOpen")));
+
+    //ryu
+    ADD_SIGNAL(godot::MethodInfo("ryu_timepass",godot::PropertyInfo(godot::Variant::FLOAT, "timepass")));
 }
 
 
@@ -87,53 +76,64 @@ void testcam::readCam()
 {
     // godot::UtilityFunctions::print("in getTexture");
     my::FaceLandmark faceLandmark("/home/duongnh/Projects/Godot/Test GDE/src/models");
-        auto current = CURRENTMIL;
-        lastDelta = current;
-        int deviceID = 0;
-        int appID = cv::CAP_ANY;
-        cap.open(deviceID,appID);
-        while(cap.isOpened()) {
-            cap >> frame;
-            faceLandmark.loadImageToInput(frame);
-            faceLandmark.runInference();
-            // frame = faceLandmark.cropFrame(faceLandmark.getFaceRoi());
-            auto mouths = faceLandmark.getMouthLandmarks();
-            auto xCenter = faceLandmark.getcenterX(frame);
-            if(mouths.at(5).x < xCenter) {
-                for(auto mouth: mouths) {
+    auto current = CURRENTMIL;
+    lastDelta = current;
+    int deviceID = 0;
+    int appID = cv::CAP_ANY;
+    cap.open(deviceID,appID);
+    while(cap.isOpened()) {
+        cap >> frame;
+        faceLandmark.loadImageToInput(frame);
+        faceLandmark.runInference();
+        // frame = faceLandmark.cropFrame(faceLandmark.getFaceRoi());
+        auto mouths = faceLandmark.getMouthLandmarks();
+        auto xCenter = faceLandmark.getcenterX(frame);
+        if(mouths.at(5).x < xCenter) {
+            for(auto mouth: mouths) {
+                bool mouth_open = is_mouth_open(mouths);
+                isOpenLeft = mouth_open;
+                if(mouth_open){
+                    cv::circle(frame, mouth, 2, cv::Scalar(255, 255, 0), -1);
+                    if(!lastMouthLeftOpen){
+                        lastMouthLeftOpen = true;
+                        // godot::UtilityFunctions::print("before emit left mouth signal");
+                        call_deferred("emit_signal","is_mouth_open_left", isOpenLeft);
+                    }
+                }else if(lastMouthLeftOpen){
+                    lastMouthLeftOpen = false;
+                } else {
                     cv::circle(frame, mouth, 2, cv::Scalar(0, 255, 0), -1);
-                    bool mouth_open = is_mouth_open(mouths);
-                    isOpenLeft = mouth_open;
-                    if  (mouth_open){
-                        cv::putText(frame, "Open", cv::Point(270, 70), cv::FONT_HERSHEY_PLAIN, 3, cv::Scalar(0, 196, 255), 2);
-                    } else {
-                        cv::putText(frame, "Close", cv::Point(270, 70), cv::FONT_HERSHEY_PLAIN, 3, cv::Scalar(0, 196, 255), 2);
-                    }
-                }
-            } else {
-                faceLandmark.loadImageToInput(frame);
-                faceLandmark.runInference();
-                auto rightMouths = faceLandmark.getMouthLandmarks();
-                for(auto rightmouth: rightMouths) {
-                    cv::circle(frame, rightmouth, 2, cv::Scalar(0,0,255), -1);
-                    bool mouthRightOpen = is_mouth_open(rightMouths);
-                    isOpenRight = mouthRightOpen;
-                    if  (mouthRightOpen){
-                        cv::putText(frame, "Open", cv::Point(270, 70), cv::FONT_HERSHEY_PLAIN, 3, cv::Scalar(255, 196, 0), 2);
-                    } else {
-                        cv::putText(frame, "Close", cv::Point(270, 70), cv::FONT_HERSHEY_PLAIN, 3, cv::Scalar(255, 196, 0), 2);
-                    }
                 }
             }
-
-            godot::PackedByteArray data;
-            data.resize(frame.total() * frame.elemSize());
-            memcpy(data.ptrw(), frame.data, data.size());
-            image = image->create_from_data(frame.cols, frame.rows, false, godot::Image::FORMAT_RGB8, data);
-            image->flip_x();
-            texture.instantiate();
-            texture = texture->create_from_image(image);
+        } else {
+            faceLandmark.loadImageToInput(frame);
+            faceLandmark.runInference();
+            auto rightMouths = faceLandmark.getMouthLandmarks();
+            for(auto rightmouth: rightMouths) {
+                bool mouthRightOpen = is_mouth_open(rightMouths);
+                isOpenRight = mouthRightOpen;
+                if (mouthRightOpen){
+                    cv::circle(frame, rightmouth, 2, cv::Scalar(255, 0, 0), -1);
+                    if(!lastMouthRightOpen){
+                        lastMouthRightOpen = true;
+                        call_deferred("emit_signal", "is_mouth_open_right", isOpenLeft);
+                    }
+                }else if(lastMouthRightOpen){
+                    lastMouthRightOpen = false;
+                } else {
+                    cv::circle(frame, rightmouth, 2, cv::Scalar(0, 196, 255), -1);
+                }
+            }
         }
+
+        godot::PackedByteArray data;
+        data.resize(frame.total() * frame.elemSize());
+        memcpy(data.ptrw(), frame.data, data.size());
+        image = image->create_from_data(frame.cols, frame.rows, false, godot::Image::FORMAT_RGB8, data);
+        image->flip_x();
+        texture.instantiate();
+        texture = texture->create_from_image(image);
+    }
 }
 
 

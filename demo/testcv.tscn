@@ -8,7 +8,7 @@ script = ExtResource("1_f1q0t")
 
 [node name="TestGDE" type="TestGDE" parent="."]
 speed = 4.0
-position = Vector2(2.04749, 9.04315)
+position = Vector2(2.63759, 15.8154)
 texture = ExtResource("1_mmnsy")
 centered = false
 

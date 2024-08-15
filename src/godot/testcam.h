@@ -16,11 +16,11 @@ public:
     void stop();
     godot::Ref<godot::ImageTexture> getTexture() ;
     void readCam();
-    double lastDelta=0;
+    double lastDelta=0.0;
     double isChange=0;
-    bool MouthLandmark();
     std::vector<std::thread> threads;
     void startThread();
+    float timepass=0;
 protected:
     static void _bind_methods();
 private:;
@@ -30,10 +30,13 @@ private:;
     godot::Ref<godot::ImageTexture> texture;
     double euclidean_distance(const cv::Point& p1, const cv::Point& p2);
     bool is_mouth_open(const std::vector<cv::Point>& mouthLandmarks);
-    bool openSignalLeft();
-    bool openSignalRight();
-    bool isOpenLeft;
-    bool isOpenRight;
+    bool isOpenLeft = false;
+    bool lastMouthLeftOpen = false;
+    bool isOpenRight = false;
+    bool lastMouthRightOpen = false;
+
+
+
 
 
     // Node interface

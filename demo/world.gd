@@ -7,9 +7,8 @@ var player2_direction = 1
 
 var player1_hp = 100
 var player2_hp = 100
-var bullet_speed = 600
-var bullet_timeout = 1.5
-var close = false
+var bullet_speed = 1200
+var bullet_timeout = 2
 
 
 @onready var player1 = $player1
@@ -18,7 +17,6 @@ var close = false
 @onready var player2_hp_bar = $player2_hp
 var Bullet = preload("res://bullet.tscn")
 
-#var shoot_position = player1.set_position(player1.position,false)
 func _ready():
 	player1_hp_bar.max_value = player1_hp
 	player2_hp_bar.max_value = player2_hp
@@ -29,26 +27,16 @@ func _ready():
 	print("from godot call thread")
 	pass
 
-	
-
 func _process(delta): 
 	_enablecam()
-	
-	if($testcam.mySignalLeft()):
-		shoot_left_when_open()
-		
-		
-	if($testcam.mySignalRight()):
-		shoot_right_when_open()
-	
-		
+	#$testcam.mySignalLeft(delta)
 	handle_input(delta)
 	update_hp()
 	
 func handle_input(delta):
 	
 	player1.position.y += player1_direction * SPEED * delta
-	if player1.position.y <= player1_hp_bar.position.y + player1_hp_bar.size.y :
+	if player1.position.y <= player1_hp_bar.position.y + player1_hp_bar.size.y:
 		player1.position.y = player1_hp_bar.position.y + player1_hp_bar.size.y
 		player1_direction = 1
 	elif player1.position.y >= get_viewport_rect().size.y - player1.size.y:
@@ -65,9 +53,9 @@ func handle_input(delta):
 	
 	
 	if Input.is_action_just_pressed("shoot"):
-		shoot_bullet(player2.position, Vector2(-1, 0))
+		shoot_bullet(player2.position + Vector2(-25,75), Vector2(-1, 0))
 	if Input.is_action_just_pressed("ui_select"):
-		shoot_bullet(player1.position, Vector2(1, 0))
+		shoot_bullet(player1.position + Vector2(175,75), Vector2(1, 0))
 	
 func shoot_bullet(start_position, direction):
 	var bullet = Bullet.instantiate()
@@ -100,6 +88,7 @@ func _enablecam():
 	$player1.texture = $testcam.get_texture()
 	$player2.texture = $testcam.get_texture()
 
+
 func _on_area_1_body_entered(body):
 	if body.name == "Bullet":
 		decrease_hp(player1,10)
@@ -111,9 +100,19 @@ func _on_area_2_body_entered(body):
 		decrease_hp(player2,10)
 	pass # Replace with function body.
 
-func shoot_left_when_open():
-	shoot_bullet(player2.position, Vector2(-1, 0))
-	
-func shoot_right_when_open():
-	shoot_bullet(player1.position, Vector2(1, 0))
+
+func _on_testcam_is_mouth_open_left(isOpen):
+	shoot_bullet(player2.position + Vector2(-15,75), Vector2(-1, 0))
+	pass # Replace with function body.
+
+
+func _on_testcam_is_mouth_open_right(isOpen):
+	shoot_bullet(player1.position + Vector2(165,75), Vector2(1, 0))
+	pass # Replace with function body.
+
+
+func _on_testcam_ryu_timepass(timepass):
+	print("time pass")
+	print("ryu time pass: " , timepass);
+	pass # Replace with function body.
 
