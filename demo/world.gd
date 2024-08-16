@@ -102,12 +102,12 @@ func _on_area_2_body_entered(body):
 
 
 func _on_testcam_is_mouth_open_left(isOpen):
-	shoot_bullet(player2.position + Vector2(-15,75), Vector2(-1, 0))
+	shoot_bullet(player2.position + Vector2(-25,75), Vector2(-1, 0))
 	pass # Replace with function body.
 
 
 func _on_testcam_is_mouth_open_right(isOpen):
-	shoot_bullet(player1.position + Vector2(165,75), Vector2(1, 0))
+	shoot_bullet(player1.position + Vector2(175,75), Vector2(1, 0))
 	pass # Replace with function body.
 
 

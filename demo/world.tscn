@@ -1,11 +1,10 @@
-[gd_scene load_steps=29 format=3 uid="uid://biappi531ve2n"]
+[gd_scene load_steps=28 format=3 uid="uid://biappi531ve2n"]
 
 [ext_resource type="Texture2D" uid="uid://cdbr44raccme2" path="res://BG_DesertMountains/background1.png" id="1_4jxpm"]
 [ext_resource type="Script" path="res://world.gd" id="1_6efd1"]
 [ext_resource type="Texture2D" uid="uid://df4mj7yhwu3cu" path="res://BG_DesertMountains/background3.png" id="2_33ol4"]
 [ext_resource type="Texture2D" uid="uid://bp1e035jrnvfk" path="res://BG_DesertMountains/background2.png" id="3_t56b7"]
 [ext_resource type="Texture2D" uid="uid://do1jkrte4lnyf" path="res://BG_DesertMountains/cloud1.png" id="4_4mxut"]
-[ext_resource type="Texture2D" uid="uid://4la8xh4gwlrd" path="res://tileset.png" id="5_7qmlm"]
 [ext_resource type="Texture2D" uid="uid://d0ae4tdnx5kn5" path="res://BG_DesertMountains/cloud2.png" id="5_43iwi"]
 [ext_resource type="Texture2D" uid="uid://cau6rsygsg3sm" path="res://BG_DesertMountains/cloud3.png" id="6_5k3rg"]
 [ext_resource type="Texture2D" uid="uid://h62mngc3oxjw" path="res://BG_DesertMountains/cloud4.png" id="7_ma3jw"]
@@ -3255,7 +3254,6 @@ texture = ExtResource("3_t56b7")
 39:39/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_o2756"]
-texture = ExtResource("5_7qmlm")
 1:0/0 = 0
 3:0/0 = 0
 4:0/0 = 0
