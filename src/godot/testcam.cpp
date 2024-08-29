@@ -59,11 +59,11 @@ void testcam::_bind_methods()
     godot::ClassDB::bind_method(godot::D_METHOD("stop"), &testcam::stop);
     godot::ClassDB::bind_method(godot::D_METHOD("get_texture"), &testcam::getTexture);
     godot::ClassDB::bind_method(godot::D_METHOD("startThread"), &testcam::startThread);
-    ADD_SIGNAL(godot::MethodInfo("is_mouth_open_left", godot::PropertyInfo(godot::Variant::BOOL, "isOpen")));
-    ADD_SIGNAL(godot::MethodInfo("is_mouth_open_right", godot::PropertyInfo(godot::Variant::BOOL, "isOpen")));
+    ADD_SIGNAL(godot::MethodInfo("is_mouth_open_left"));
+    ADD_SIGNAL(godot::MethodInfo("is_mouth_open_right"));
 
     //ryu
-    ADD_SIGNAL(godot::MethodInfo("ryu_timepass",godot::PropertyInfo(godot::Variant::FLOAT, "timepass")));
+    // ADD_SIGNAL(godot::MethodInfo("ryu_timepass",godot::PropertyInfo(godot::Variant::FLOAT, "timepass")));
 }
 
 
@@ -84,55 +84,71 @@ void testcam::readCam()
     while(cap.isOpened()) {
         cap >> frame;
         faceLandmark.loadImageToInput(frame);
-        faceLandmark.runInference();
-        // frame = faceLandmark.cropFrame(faceLandmark.getFaceRoi());
-        auto mouths = faceLandmark.getMouthLandmarks();
-        auto xCenter = faceLandmark.getcenterX(frame);
-        if(mouths.at(5).x < xCenter) {
-            for(auto mouth: mouths) {
-                bool mouth_open = is_mouth_open(mouths);
-                isOpenLeft = mouth_open;
-                if(mouth_open){
-                    cv::circle(frame, mouth, 2, cv::Scalar(255, 255, 0), -1);
-                    if(!lastMouthLeftOpen){
-                        lastMouthLeftOpen = true;
-                        // godot::UtilityFunctions::print("before emit left mouth signal");
-                        call_deferred("emit_signal","is_mouth_open_left", isOpenLeft);
+        std::vector<my::Detection> faces = faceLandmark.inference();
+        godot::UtilityFunctions::print("face size: ", faces.size());
+        if(!faces.empty()){
+            for(my::Detection &face : faces){
+                face.roi = cv::Rect2f(face.roi.x*frame.cols, face.roi.y*frame.rows, face.roi.width*frame.cols, face.roi.height*frame.rows);
+                cv::rectangle(frame, face.roi, cv::Scalar(0,0,255),2);
+                godot::UtilityFunctions::print("ROI width: ", face.roi.width, " || ROI height: ", face.roi.height);
+                godot::UtilityFunctions::print("Frame width: ", frame.rows, " || Frame height: ", frame.cols);
+                if(0 < face.roi.width < frame.rows && 0 < face.roi.height < frame.cols)
+                {
+                    godot::UtilityFunctions::print(__LINE__, " bug");
+                    cv::Mat faceMat = frame(face.roi);
+                    faceLandmark.loadImageToInput(faceMat);
+                    faceLandmark.runInference();
+                    auto mouths = faceLandmark.getMouthLandmarks();
+                    bool mouth_open = is_mouth_open(mouths);
+                    auto xCenter = frame.cols/2;
+                    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+                    // frame = faceLandmark.cropFrame(faceLandmark.getFaceRoi());
+                    // for(auto& mouth:mouths){
+                    //     cv::circle(frame, mouth, -1, cv::Scalar(255, 255, 0), -1);
+                    // }
+                    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+                    godot::UtilityFunctions::print("Mouth size: ", mouths.size());
+                    if(mouths.size() >= 6)
+                    {
+                        if(mouths.at(5).x + face.roi.x  < xCenter) {
+                            if(!lastMouthLeftOpen && mouth_open){
+                                call_deferred("emit_signal","is_mouth_open_left");
+                            }
+                            lastMouthLeftOpen = mouth_open;
+                        } else{
+                            if(!lastMouthRightOpen && mouth_open){
+                                call_deferred("emit_signal","is_mouth_open_right");
+                            }
+                            lastMouthRightOpen = mouth_open;
+                        }
+                    } else {
+                        godot::UtilityFunctions::print("No face detected!!");
+                        continue;
                     }
-                }else if(lastMouthLeftOpen){
-                    lastMouthLeftOpen = false;
                 } else {
-                    cv::circle(frame, mouth, 2, cv::Scalar(0, 255, 0), -1);
+                    godot::UtilityFunctions::print("Invalid ROI!! Skip frame");
+                    continue;
                 }
             }
         } else {
-            faceLandmark.loadImageToInput(frame);
-            faceLandmark.runInference();
-            auto rightMouths = faceLandmark.getMouthLandmarks();
-            for(auto rightmouth: rightMouths) {
-                bool mouthRightOpen = is_mouth_open(rightMouths);
-                isOpenRight = mouthRightOpen;
-                if (mouthRightOpen){
-                    cv::circle(frame, rightmouth, 2, cv::Scalar(255, 0, 0), -1);
-                    if(!lastMouthRightOpen){
-                        lastMouthRightOpen = true;
-                        call_deferred("emit_signal", "is_mouth_open_right", isOpenLeft);
-                    }
-                }else if(lastMouthRightOpen){
-                    lastMouthRightOpen = false;
-                } else {
-                    cv::circle(frame, rightmouth, 2, cv::Scalar(0, 196, 255), -1);
-                }
-            }
+            godot::UtilityFunctions::print("Error!! Face is null.");
+            continue;
         }
-
+        godot::UtilityFunctions::print(__LINE__, " " ,"face size: ", faces.size());
         godot::PackedByteArray data;
+        godot::UtilityFunctions::print(__LINE__, " bug");
         data.resize(frame.total() * frame.elemSize());
+        godot::UtilityFunctions::print(__LINE__, " bug");
         memcpy(data.ptrw(), frame.data, data.size());
+        godot::UtilityFunctions::print(__LINE__, " bug");
         image = image->create_from_data(frame.cols, frame.rows, false, godot::Image::FORMAT_RGB8, data);
+        godot::UtilityFunctions::print(__LINE__, " bug");
         image->flip_x();
+        godot::UtilityFunctions::print(__LINE__, " bug");
         texture.instantiate();
+        godot::UtilityFunctions::print(__LINE__, " bug");
         texture = texture->create_from_image(image);
+        godot::UtilityFunctions::print(__LINE__, " bug");
     }
 }
 

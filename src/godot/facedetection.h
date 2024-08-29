@@ -52,6 +52,7 @@ public:
             Can only run when all input tensors have been loaded.
             */
     virtual void runInference() ;
+    std::vector<Detection> inference();
 
     /*
             Crop input frame at roi (padding if need)

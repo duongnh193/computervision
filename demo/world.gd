@@ -27,10 +27,11 @@ func _ready():
 	print("from godot call thread")
 	pass
 
-func _process(delta): 
+func _process(delta):
 	_enablecam()
-	#$testcam.mySignalLeft(delta)
+	
 	handle_input(delta)
+	
 	update_hp()
 	
 func handle_input(delta):
@@ -101,18 +102,12 @@ func _on_area_2_body_entered(body):
 	pass # Replace with function body.
 
 
-func _on_testcam_is_mouth_open_left(isOpen):
-	shoot_bullet(player2.position + Vector2(-25,75), Vector2(-1, 0))
+func _on_testcam_is_mouth_open_left():
+	shoot_bullet(player2.position + Vector2(-30,75), Vector2(-1, 0))
 	pass # Replace with function body.
 
 
-func _on_testcam_is_mouth_open_right(isOpen):
-	shoot_bullet(player1.position + Vector2(175,75), Vector2(1, 0))
-	pass # Replace with function body.
-
-
-func _on_testcam_ryu_timepass(timepass):
-	print("time pass")
-	print("ryu time pass: " , timepass);
+func _on_testcam_is_mouth_open_right():
+	shoot_bullet(player1.position + Vector2(180,75), Vector2(1, 0))
 	pass # Replace with function body.
 

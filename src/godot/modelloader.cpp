@@ -1,7 +1,7 @@
 #include "modelloader.h"
 
 #include <iostream>
-
+#include <godot_cpp/variant/utility_functions.hpp>
 #include "tensorflow/lite/builtin_op_data.h"
 #include "tensorflow/lite/kernels/register.h"
 
@@ -94,9 +94,13 @@ void my::ModelLoader::loadBytesToInput(const void* data, int idx) {
 }
 
 
-void my::ModelLoader::runInference() {
+void my::ModelLoader::runInference()
+{
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
     inputChecker();
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
     m_interpreter->Invoke(); // Tflite inference
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
 }
 
 

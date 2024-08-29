@@ -1,5 +1,6 @@
 #include "facedetection.h"
-
+#include "facelandmark.h"
+#include <godot_cpp/variant/utility_functions.hpp>
 
 my::FaceDetection::FaceDetection(std::string modelDir) :
     my::ModelLoader(modelDir + std::string("/face_detection_short.tflite"))
@@ -31,6 +32,32 @@ void my::FaceDetection::runInference()  {
         }
     }
 
+}
+
+std::vector<my::Detection> my::FaceDetection::inference()
+{
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+    ModelLoader::runInference();
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+    auto regressor = getFaceRegressor();
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+    auto classificator = getFaceClassificator();
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+    std::vector<my::Detection> detections = m_postProcessor.getHighestScoreDetections(regressor, classificator);
+    // godot::UtilityFunctions::print(__LINE__ , " ", __PRETTY_FUNCTION__);
+
+    for(const auto& detection: detections){
+        if (detection.classId != -1) {
+            /*
+        The detection is still in local shape [0..1]
+        */
+            m_roi = calculateRoiFromDetection(detection);
+        }
+        else {
+            m_roi = cv::Rect();
+        }
+    }
+    return detections;
 }
 
 

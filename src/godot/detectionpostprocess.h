@@ -13,6 +13,7 @@
 #define NUM_BOXES       896
 #define NUM_COORD       16
 #define NUM_SIZES       2
+#define IouThreshold    0.5
 
 namespace my {
 
@@ -47,7 +48,8 @@ public:
     ~DetectionPostProcess() = default;
     Detection getHighestScoreDetection
         (const std::vector<float>& rawBoxes, const std::vector<float>& scores) const;
-   std::vector<Detection> getHighestScoreDetections(const std::vector<float>& rawBoxes, const std::vector<float>& scores, uint faceNum=2) const;
+    std::vector<Detection> getHighestScoreDetections(const std::vector<float>& rawBoxes, const std::vector<float>& scores, uint faceNum=2) const;
+    void NMS(std::vector<my::Detection> &rects) const;
 private:
     cv::Rect2f decodeBox(const std::vector<float>& rawBoxes, int index) const;
 

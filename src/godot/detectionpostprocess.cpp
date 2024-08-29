@@ -1,5 +1,6 @@
 #include "detectionpostprocess.h"
 #include <iostream>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 /*
 Helper function
@@ -47,6 +48,29 @@ cv::Rect2f my::DetectionPostProcess::decodeBox
     return cv::Rect2f(cx - w/2, cy - h/2, w, h);
 }
 
+void my::DetectionPostProcess::NMS(std::vector<my::Detection> &detections) const
+{
+    sort(detections.begin(), detections.end(),[](my::Detection a, my::Detection b){
+        return a.score > b.score;
+    });
+    std::vector<cv::Rect> results;
+    cv::Rect2f intersec;
+    cv::Rect2f uni;
+    float IOU;
+    for(uint i = 0; i< detections.size()-1; i++){;
+        for(uint j= i+1; j<detections.size();){
+            intersec = detections[i].roi & detections[j].roi;
+            uni = detections[i].roi | detections[j].roi;
+            IOU = (float)intersec.area()/uni.area();
+            if (IOU > IouThreshold){
+                detections.erase(detections.begin()+j);
+                continue;
+            }
+            j++;
+        }
+    }
+}
+
 std::vector<my::Detection> my::DetectionPostProcess::getHighestScoreDetections(const std::vector<float>& rawBoxes, const std::vector<float>& scores, uint faceNum) const {
     std::vector<my::Detection> result;
     for (int i = 0; i < NUM_BOXES; i++) {
@@ -55,15 +79,33 @@ std::vector<my::Detection> my::DetectionPostProcess::getHighestScoreDetections(c
             if(result.size() < faceNum){
                 auto data = decodeBox(rawBoxes, i);
                 result.push_back(my::Detection(scores[i], CLASS_ID, data));
+                NMS(result);
+                // godot::UtilityFunctions::print(__LINE__ , " ", "result size: ", result.size());
             } else {
                 int iMin = 0;
                 if(scores[iMin] < scores[i]) {
                     iMin = i;
                 }
-                auto data = decodeBox(rawBoxes,i);
-                result.push_back(my::Detection(scores[i], CLASS_ID, data));
+                auto data = decodeBox(rawBoxes,iMin);
+                result.push_back(my::Detection(scores[iMin], CLASS_ID, data));
+                NMS(result);
+                // godot::UtilityFunctions::print(__LINE__ , " ", "result size: ", result.size());
             }
         }
     }
     return result;
 }
+
+
+my::Detection my::DetectionPostProcess::getHighestScoreDetection
+    (const std::vector<float>& rawBoxes, const std::vector<float>& scores) const {
+    my::Detection detection;
+    for (int i = 0; i < NUM_BOXES; i++) {
+        if (scores[i] > std::max(MIN_THRESHOLD, detection.score)) {
+            auto data = decodeBox(rawBoxes, i);
+            detection = my::Detection(scores[i], CLASS_ID, data);
+        }
+    }
+    return detection;
+}
+
