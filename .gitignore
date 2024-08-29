@@ -1,2 +1,4 @@
-.vscodde
-.godot
+.vscode/
+.godot/
+.sconsign.dblite
+.qtc_clangd/
